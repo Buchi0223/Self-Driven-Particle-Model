@@ -1,0 +1,14 @@
+[project]
+name = "self-driven-particle-model"
+version = "0.1.0"
+description = "Self-Driven Particle Model for Mixed Traffic (Kanagaraj & Treiber, 2018)"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]

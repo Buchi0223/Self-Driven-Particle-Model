@@ -24,17 +24,24 @@ MTM固有パラメータ（9個）: s^y_0, s^y_0b, s̃^y_0, s̃^y_0b, b_b, b̃_b
 + underlying CF モデルのパラメータ（IDM/ACC: v0, T, s0, a, b, δ, coolness）
 
 ## Tech Stack
-- Python 3
+- Python 3.12
+- パッケージ管理: uv
 - シミュレーション可視化: matplotlib
+- テスト: pytest
 
 ## Commands
 ```bash
-# (TBD: プロジェクト進行に応じて追記)
+uv sync --extra dev   # 依存関係インストール
+uv run pytest         # テスト実行
+uv run python <file>  # スクリプト実行
 ```
 
 ## Directory Structure
 ```
 paper/           # 参考論文 PDF
+src/             # モデル実装
+tests/           # ユニットテスト
+scenarios/       # 検証シナリオ・可視化
 ```
 
 ## Development Guidelines
