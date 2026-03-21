@@ -4,9 +4,9 @@
 論文 Fig. 2 に定義される車両間の幾何量を計算する純粋関数群。
 全関数はステートレスで副作用なし。
 
-座標系:
+座標系 (論文準拠):
     x: 縦方向 (道路進行方向, 正が前方)
-    y: 横方向 (正が左方向)
+    y: 横方向 (正が右方向, "y is increasing to the right" — 論文 p.6)
     位置は車両の front-center を基準
 
 Reference:
@@ -36,7 +36,7 @@ def delta_y(yi: float, yl: float) -> float:
         yl: リーダー l の横方向位置 [m]
 
     Returns:
-        Δy_{il} = yl - yi [m]  (正: リーダーが左側)
+        Δy_{il} = yl - yi [m]  (正: リーダーが右側)
     """
     return yl - yi
 

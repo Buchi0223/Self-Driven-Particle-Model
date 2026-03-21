@@ -5,8 +5,8 @@ Step 11: シナリオ — 2台の間を通過 (Fig. 5a 再現)
 
 設定 (Fig. 5a に基づく):
     Follower F:  Car, v0=18, v_init=15, (x=0, y=5)
-    Leader  L1:  Car, v0=9,  v_init=9,  (x=50, y=3)   — 右寄り
-    Leader  L2:  Car, v0=6,  v_init=6,  (x=60, y=9)   — 左寄り
+    Leader  L1:  Car, v0=9,  v_init=9,  (x=50, y=3)   — 左寄り
+    Leader  L2:  Car, v0=6,  v_init=6,  (x=60, y=9)   — 右寄り
     Road: 幅12m
     t_max: 35s
 
@@ -37,7 +37,7 @@ def draw_vehicle_rect(ax, x, y, length, width, color, label=None):
 
 
 def main():
-    road = Road(y_right=0.0, y_left=12.0, road_length=1000.0)
+    road = Road(y_left=0.0, y_right=12.0, road_length=1000.0)
     mtm = DEFAULT_MTM_PARAMS
 
     slow_car_1 = CFParams(

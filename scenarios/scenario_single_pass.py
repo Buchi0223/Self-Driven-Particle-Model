@@ -23,7 +23,7 @@ from src.simulation import run_simulation
 
 
 def main():
-    road = Road(y_right=0.0, y_left=12.0, road_length=800.0)
+    road = Road(y_left=0.0, y_right=12.0, road_length=800.0)
     mtm = DEFAULT_MTM_PARAMS
 
     # リーダーは v0=9 の遅い車両

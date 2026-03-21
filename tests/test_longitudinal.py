@@ -149,23 +149,23 @@ class TestFBoundaryLongitudinal:
         """道路中央では境界力はほぼゼロ"""
         f = f_boundary_longitudinal(
             vi=15.0, yi=6.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb=3.0, sy0b=0.15,
+            y_left=0.0, y_right=12.0, bb=3.0, sy0b=0.15,
         )
         assert abs(f) < 0.01
 
-    def test_near_right_boundary(self):
-        """右境界接近 → 負の力 (減速)"""
+    def test_near_left_boundary(self):
+        """左境界接近 (yi=1, y_left=0) → 負の力 (減速)"""
         f = f_boundary_longitudinal(
             vi=15.0, yi=1.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb=3.0, sy0b=0.15,
+            y_left=0.0, y_right=12.0, bb=3.0, sy0b=0.15,
         )
         assert f < 0.0
 
-    def test_near_left_boundary(self):
-        """左境界接近 → 負の力 (減速)"""
+    def test_near_right_boundary(self):
+        """右境界接近 (yi=11, y_right=12) → 負の力 (減速)"""
         f = f_boundary_longitudinal(
             vi=15.0, yi=11.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb=3.0, sy0b=0.15,
+            y_left=0.0, y_right=12.0, bb=3.0, sy0b=0.15,
         )
         assert f < 0.0
 
@@ -173,7 +173,7 @@ class TestFBoundaryLongitudinal:
         """v=0 → 境界力なし (式9 の vi/v0 因子)"""
         f = f_boundary_longitudinal(
             vi=0.0, yi=0.5, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb=3.0, sy0b=0.15,
+            y_left=0.0, y_right=12.0, bb=3.0, sy0b=0.15,
         )
         assert f == 0.0
 
@@ -181,11 +181,11 @@ class TestFBoundaryLongitudinal:
         """境界に近づくほど力が強くなる"""
         f_far = f_boundary_longitudinal(
             vi=15.0, yi=3.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb=3.0, sy0b=0.15,
+            y_left=0.0, y_right=12.0, bb=3.0, sy0b=0.15,
         )
         f_near = f_boundary_longitudinal(
             vi=15.0, yi=1.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb=3.0, sy0b=0.15,
+            y_left=0.0, y_right=12.0, bb=3.0, sy0b=0.15,
         )
         assert abs(f_near) > abs(f_far)
 

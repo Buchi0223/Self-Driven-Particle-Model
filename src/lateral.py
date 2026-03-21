@@ -48,7 +48,7 @@ def alpha_tilde(dy: float, w_bar: float, sy0_tilde: float) -> float:
     """横方向減衰因子 α̃(Δy_{ij}) — 式(16)
 
     オーバーラップ領域 (s^y < 0) では線形、クリアランス領域では指数減衰。
-    符号付き: リーダーが左 (Δy > 0) → 正、右 (Δy < 0) → 負。
+    符号付き: リーダーが右 (Δy > 0) → 正、左 (Δy < 0) → 負。
     Δy = 0 のとき α̃ = 0 (インラインでは横方向力なし)。
 
     Args:
@@ -230,30 +230,25 @@ def g_boundary_lateral(
 ) -> float:
     """道路境界からの横方向力 — 式(11)
 
-    左境界は右方向 (+y → -y 方向、つまり -) に…ではなく:
-    左境界 (y_left) は車両を右へ押す → 正の力 (y 増加方向 = 左なので、
-    壁から離れる方向は y 減少 = 負)
-    …座標系を整理:
+    g_{ib} = ±b̃_b · (v_i/v0) · exp(-s^y_{ib} / s̃^y_{0b})
 
-    右境界 (y_right): 車両を左へ押す → g > 0 (y 増加方向)
-    左境界 (y_left):  車両を右へ押す → g < 0 (y 減少方向)
+    論文 p.6: "the '+' sign applies for the left boundary
+              (y is increasing to the right)"
 
-    式(11): g_{ib} = ±b̃_b · (v_i/v0) · exp(-s^y_{ib} / s̃^y_{0b})
-    "+" for left boundary (pushes right = y 減少? いや論文では + for left boundary
-     で y is increasing to the right)
+    座標系: y は右方向に増加 (論文準拠)。y_left < y_right。
+        左境界 (y_left):  車両を右へ押す → + (y 増加方向)
+        右境界 (y_right): 車両を左へ押す → - (y 減少方向)
 
-    論文 p.6: "the '+' sign applies for the left boundary (y is increasing to the right)"
-    → 本実装の座標系では y は左方向に増加するので符号を逆にする:
-       右境界 → 左へ押す → + (y 増加方向)
-       左境界 → 右へ押す → - (y 減少方向)
+    s^y_{ib} = ±(y_b - y_i) - W_i/2
+        + for right boundary, - for left boundary  (論文 p.5)
 
     Args:
         vi:         対象車両の速度 [m/s]
         yi:         対象車両の横方向位置 [m]
         Wi:         対象車両の車幅 [m]
         v0:         希望速度 [m/s]
-        y_left:     左側境界 y 座標 [m]
-        y_right:    右側境界 y 座標 [m]
+        y_left:     左側境界 y 座標 [m]  (小さい値)
+        y_right:    右側境界 y 座標 [m]  (大きい値)
         bb_tilde:   境界横方向加速度 [m/s^2]
         sy0b_tilde: 境界減衰スケール(操舵用) [m]
 
@@ -265,15 +260,17 @@ def g_boundary_lateral(
 
     speed_factor = vi / v0
 
-    # 右側境界: 車両を左 (y増加方向) へ押す → +
-    sy_right = (yi - y_right) - Wi / 2.0
-    g_right = +bb_tilde * speed_factor * math.exp(-sy_right / sy0b_tilde)
+    # 左側境界: 車両を右 (y増加方向) へ押す → +
+    # s^y = -(y_left - yi) - Wi/2 = (yi - y_left) - Wi/2
+    sy_left = (yi - y_left) - Wi / 2.0
+    g_left = +bb_tilde * speed_factor * math.exp(-sy_left / sy0b_tilde)
 
-    # 左側境界: 車両を右 (y減少方向) へ押す → -
-    sy_left = (y_left - yi) - Wi / 2.0
-    g_left = -bb_tilde * speed_factor * math.exp(-sy_left / sy0b_tilde)
+    # 右側境界: 車両を左 (y減少方向) へ押す → -
+    # s^y = +(y_right - yi) - Wi/2
+    sy_right = (y_right - yi) - Wi / 2.0
+    g_right = -bb_tilde * speed_factor * math.exp(-sy_right / sy0b_tilde)
 
-    return g_right + g_left
+    return g_left + g_right
 
 
 # ---------------------------------------------------------------------------

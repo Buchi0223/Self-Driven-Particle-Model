@@ -31,12 +31,12 @@ class TestAlphaTilde:
         assert alpha_tilde(dy=0.0, w_bar=1.7, sy0_tilde=0.30) == 0.0
 
     def test_positive_dy_positive_result(self):
-        """Δy > 0 (リーダーが左) → α̃ > 0"""
+        """Δy > 0 (リーダーが右) → α̃ > 0"""
         at = alpha_tilde(dy=3.0, w_bar=1.7, sy0_tilde=0.30)
         assert at > 0.0
 
     def test_negative_dy_negative_result(self):
-        """Δy < 0 (リーダーが右) → α̃ < 0"""
+        """Δy < 0 (リーダーが左) → α̃ < 0"""
         at = alpha_tilde(dy=-3.0, w_bar=1.7, sy0_tilde=0.30)
         assert at < 0.0
 
@@ -110,8 +110,8 @@ class TestW0FromLeader:
         )
         assert w0 == pytest.approx(0.0, abs=1e-4)
 
-    def test_slow_leader_left_pushes_right(self):
-        """遅いリーダーが左にいる → 右に避ける (w0 < 0, y減少方向)
+    def test_slow_leader_right_pushes_left(self):
+        """遅いリーダーが右にいる (Δy > 0) → 左に避ける (w0 < 0, y減少方向)
 
         α̃ > 0 (Δy > 0), a_CF_int < 0 → w0 = λ * (+) * (-) < 0
         """
@@ -124,8 +124,8 @@ class TestW0FromLeader:
         )
         assert w0 < 0.0
 
-    def test_slow_leader_right_pushes_left(self):
-        """遅いリーダーが右にいる → 左に避ける (w0 > 0, y増加方向)
+    def test_slow_leader_left_pushes_right(self):
+        """遅いリーダーが左にいる (Δy < 0) → 右に避ける (w0 > 0, y増加方向)
 
         α̃ < 0 (Δy < 0), a_CF_int < 0 → w0 = λ * (-) * (-) > 0
         """
@@ -178,23 +178,23 @@ class TestGBoundaryLateral:
         """道路中央 → 左右の力が打ち消し合ってほぼゼロ"""
         g = g_boundary_lateral(
             vi=15.0, yi=6.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb_tilde=5.0, sy0b_tilde=0.25,
+            y_left=0.0, y_right=12.0, bb_tilde=5.0, sy0b_tilde=0.25,
         )
         assert abs(g) < 0.01
 
-    def test_near_right_pushes_left(self):
-        """右境界接近 → 左へ押す (g > 0)"""
+    def test_near_left_pushes_right(self):
+        """左境界接近 (yi=1, y_left=0) → 右へ押す (g > 0, y増加方向)"""
         g = g_boundary_lateral(
             vi=15.0, yi=1.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb_tilde=5.0, sy0b_tilde=0.25,
+            y_left=0.0, y_right=12.0, bb_tilde=5.0, sy0b_tilde=0.25,
         )
         assert g > 0.0
 
-    def test_near_left_pushes_right(self):
-        """左境界接近 → 右へ押す (g < 0)"""
+    def test_near_right_pushes_left(self):
+        """右境界接近 (yi=11, y_right=12) → 左へ押す (g < 0, y減少方向)"""
         g = g_boundary_lateral(
             vi=15.0, yi=11.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb_tilde=5.0, sy0b_tilde=0.25,
+            y_left=0.0, y_right=12.0, bb_tilde=5.0, sy0b_tilde=0.25,
         )
         assert g < 0.0
 
@@ -202,7 +202,7 @@ class TestGBoundaryLateral:
         """v=0 → 境界力なし"""
         g = g_boundary_lateral(
             vi=0.0, yi=0.5, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb_tilde=5.0, sy0b_tilde=0.25,
+            y_left=0.0, y_right=12.0, bb_tilde=5.0, sy0b_tilde=0.25,
         )
         assert g == 0.0
 
@@ -210,11 +210,11 @@ class TestGBoundaryLateral:
         """境界に近づくほど力が強くなる"""
         g_far = g_boundary_lateral(
             vi=15.0, yi=3.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb_tilde=5.0, sy0b_tilde=0.25,
+            y_left=0.0, y_right=12.0, bb_tilde=5.0, sy0b_tilde=0.25,
         )
         g_near = g_boundary_lateral(
             vi=15.0, yi=1.0, Wi=1.7, v0=18.0,
-            y_left=12.0, y_right=0.0, bb_tilde=5.0, sy0b_tilde=0.25,
+            y_left=0.0, y_right=12.0, bb_tilde=5.0, sy0b_tilde=0.25,
         )
         assert abs(g_near) > abs(g_far)
 
@@ -236,7 +236,7 @@ class TestW0Desired:
         follower = Vehicle.create("Car", x=0.0, y=5.0, v=15.0, vehicle_id=0)
         leader = Vehicle.create("Car", x=15.0, y=7.0, v=5.0, vehicle_id=1)
         w0 = w0_desired(follower, [leader], DEFAULT_MTM_PARAMS)
-        # 遅いリーダーが左 → 右に避ける → w0 < 0
+        # 遅いリーダーが右 (Δy > 0) → 左に避ける → w0 < 0
         assert w0 < 0.0
 
 
@@ -269,4 +269,4 @@ class TestLateralAcceleration:
         car.w = 0.0
         road = Road()
         g = lateral_acceleration(car, [], road, DEFAULT_MTM_PARAMS)
-        assert g > 0.0  # 右境界から離れる = y 増加方向
+        assert g > 0.0  # 左境界から離れる = y 増加方向 (右へ)

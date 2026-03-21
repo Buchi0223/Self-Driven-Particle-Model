@@ -149,15 +149,20 @@ def f_boundary_longitudinal(
 
     f_{ib} = -b_b · (v_i / v0) · exp(-s^y_{ib} / s^y_{0b})
 
+    s^y_{ib} = ±(y_b - y_i) - W_i/2
+        + for right boundary, - for left boundary  (論文 p.5)
+
     両側の境界から力を受ける。v=0 のとき力は消失 (狭路低速通過を許容)。
+
+    座標系: y は右方向に増加 (論文準拠)。y_left < y_right。
 
     Args:
         vi:      対象車両の速度 [m/s]
         yi:      対象車両の横方向位置 [m]
         Wi:      対象車両の車幅 [m]
         v0:      希望速度 [m/s]
-        y_left:  左側境界 y 座標 [m]
-        y_right: 右側境界 y 座標 [m]
+        y_left:  左側境界 y 座標 [m]  (小さい値)
+        y_right: 右側境界 y 座標 [m]  (大きい値)
         bb:      境界制動減速度 [m/s^2]
         sy0b:    境界減衰スケール [m]
 
@@ -169,15 +174,15 @@ def f_boundary_longitudinal(
 
     speed_factor = vi / v0
 
-    # 右側境界との横方向ギャップ
-    sy_right = (yi - y_right) - Wi / 2.0
-    f_right = -bb * speed_factor * math.exp(-sy_right / sy0b)
-
-    # 左側境界との横方向ギャップ
-    sy_left = (y_left - yi) - Wi / 2.0
+    # 左側境界: s^y = -(y_left - yi) - Wi/2 = (yi - y_left) - Wi/2
+    sy_left = (yi - y_left) - Wi / 2.0
     f_left = -bb * speed_factor * math.exp(-sy_left / sy0b)
 
-    return f_right + f_left
+    # 右側境界: s^y = +(y_right - yi) - Wi/2
+    sy_right = (y_right - yi) - Wi / 2.0
+    f_right = -bb * speed_factor * math.exp(-sy_right / sy0b)
+
+    return f_left + f_right
 
 
 # ---------------------------------------------------------------------------
