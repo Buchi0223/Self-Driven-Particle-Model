@@ -62,8 +62,8 @@ def main():
     traj_l1 = result.get_vehicle_trajectory(1)
     traj_l2 = result.get_vehicle_trajectory(2)
 
-    # --- プロット (Fig. 5a 形式: 3パネル) ---
-    fig, axes = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
+    # --- プロット (Fig. 5a 形式: 3パネル, 横軸 Time [s]) ---
+    fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
     # (1) 相対縦位置 (X - X_L1)
     axes[0].plot(traj_f["time"],
@@ -74,6 +74,7 @@ def main():
                  "g--", label="Leader L2")
     axes[0].axhline(0, color="gray", ls="--", alpha=0.5)
     axes[0].set_ylabel("X − X_L1 [m]")
+    axes[0].set_xlim(0, 35)
     axes[0].legend()
     axes[0].set_title("(a) Passing Between Two Leaders")
 
@@ -81,50 +82,51 @@ def main():
     axes[1].plot(traj_f["time"], traj_f["y"], "b-", label="Follower F")
     axes[1].plot(traj_l1["time"], traj_l1["y"], "r--", label="Leader L1")
     axes[1].plot(traj_l2["time"], traj_l2["y"], "g--", label="Leader L2")
-    axes[1].axhline(road.y_right, color="gray", ls="-", alpha=0.3)
     axes[1].axhline(road.y_left, color="gray", ls="-", alpha=0.3)
-    axes[1].set_ylabel("Lateral position y [m]")
-    axes[1].set_ylim(-1, 13)
+    axes[1].axhline(road.y_right, color="gray", ls="-", alpha=0.3)
+    axes[1].set_ylabel("Lateral position [m]")
+    axes[1].set_ylim(0, 10)
+    axes[1].set_xlim(0, 35)
     axes[1].legend()
 
-    # (3) スナップショット
+    # (3) スナップショット (横軸 Time [s], 縦軸 y, 車両矩形を時間軸上に配置)
     ax_snap = axes[2]
-    snap_times = [0, 4, 8, 12, 16, 20]
-    colors_f = plt.cm.Blues(np.linspace(0.3, 1.0, len(snap_times)))
-    colors_l1 = plt.cm.Reds(np.linspace(0.3, 1.0, len(snap_times)))
-    colors_l2 = plt.cm.Greens(np.linspace(0.3, 1.0, len(snap_times)))
+    snap_times = [0, 5, 10, 15, 20, 25, 30, 35]
+    colors_f = plt.cm.Blues(np.linspace(0.4, 1.0, len(snap_times)))
+    colors_l1 = plt.cm.Reds(np.linspace(0.4, 1.0, len(snap_times)))
+    colors_l2 = plt.cm.Greens(np.linspace(0.4, 1.0, len(snap_times)))
 
     for idx, st in enumerate(snap_times):
-        # 最も近い記録時刻を探す
         ti = min(range(len(traj_f["time"])),
                  key=lambda i: abs(traj_f["time"][i] - st))
-        x_ref = traj_l1["x"][ti]  # L1 基準
 
-        draw_vehicle_rect(
-            ax_snap, traj_f["x"][ti] - x_ref, traj_f["y"][ti],
-            CAR.length, CAR.width, colors_f[idx],
-            f"F({st}s)" if idx % 2 == 0 else None,
-        )
-        draw_vehicle_rect(
-            ax_snap, traj_l1["x"][ti] - x_ref, traj_l1["y"][ti],
-            CAR.length, CAR.width, colors_l1[idx],
-            f"L1({st}s)" if idx % 2 == 0 else None,
-        )
-        draw_vehicle_rect(
-            ax_snap, traj_l2["x"][ti] - x_ref, traj_l2["y"][ti],
-            CAR.length, CAR.width, colors_l2[idx],
-            f"L2({st}s)" if idx % 2 == 0 else None,
-        )
+        # 横軸=time, 縦軸=y で矩形を配置 (幅=時間方向の太さ, 高さ=車幅)
+        rect_w = 0.8  # 時間軸方向の矩形幅
+        for traj, color, label_prefix in [
+            (traj_f, colors_f[idx], "F"),
+            (traj_l1, colors_l1[idx], "L1"),
+            (traj_l2, colors_l2[idx], "L2"),
+        ]:
+            rect = patches.Rectangle(
+                (st - rect_w / 2, traj["y"][ti] - CAR.width / 2),
+                rect_w, CAR.width,
+                linewidth=1, edgecolor=color, facecolor=color, alpha=0.5,
+            )
+            ax_snap.add_patch(rect)
+            if idx == 0 or idx == len(snap_times) - 1:
+                ax_snap.text(st, traj["y"][ti], label_prefix,
+                             ha="center", va="center", fontsize=6,
+                             fontweight="bold", color="black")
 
-    ax_snap.set_xlabel("X − X_L1 [m]")
-    ax_snap.set_ylabel("y [m]")
-    ax_snap.set_xlim(-60, 40)
-    ax_snap.set_ylim(-1, 13)
-    ax_snap.set_title("Snapshots")
-    ax_snap.axhline(road.y_right, color="gray", ls="-", alpha=0.3)
+    ax_snap.set_xlabel("Time [s]")
+    ax_snap.set_ylabel("Lateral position [m]")
+    ax_snap.set_xlim(0, 35)
+    ax_snap.set_ylim(0, 10)
+    ax_snap.set_title("Snap shot")
     ax_snap.axhline(road.y_left, color="gray", ls="-", alpha=0.3)
+    ax_snap.axhline(road.y_right, color="gray", ls="-", alpha=0.3)
 
-    fig.subplots_adjust(hspace=0.3)
+    fig.subplots_adjust(hspace=0.25)
     plt.savefig("output/step11_pass_between.png", dpi=150, bbox_inches="tight")
     plt.close()
     print("Saved: output/step11_pass_between.png")

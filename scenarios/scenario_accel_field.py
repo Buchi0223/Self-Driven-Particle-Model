@@ -89,41 +89,42 @@ def compute_field(
 
 
 def plot_accel_field(ax, x_grid, y_grid, F, G, leaders, car_params, title):
-    """加速度場をプロット"""
+    """加速度場をプロット (論文 Fig.3 準拠: 横軸 y[m], 縦軸 x[m])"""
     # 縦方向加速度のカラーマップ
     vmax = max(abs(F.min()), abs(F.max()))
     vmax = min(vmax, 9.0)
+    # 横軸=y, 縦軸=x にするため y_grid, x_grid の順
     im = ax.pcolormesh(
-        x_grid, y_grid, F,
+        y_grid, x_grid, F,
         cmap="RdYlGn", vmin=-vmax, vmax=vmax, shading="auto",
     )
 
-    # ベクトル場 (間引き)
+    # ベクトル場 (間引き): (G, F) = (横方向, 縦方向) に対応
     skip = 3
     scale = 80
     ax.quiver(
-        x_grid[::skip, ::skip], y_grid[::skip, ::skip],
-        F[::skip, ::skip], G[::skip, ::skip],
+        y_grid[::skip, ::skip], x_grid[::skip, ::skip],
+        G[::skip, ::skip], F[::skip, ::skip],
         scale=scale, width=0.003, color="black", alpha=0.6,
     )
 
-    # リーダーの矩形
+    # リーダーの矩形 (横軸=y, 縦軸=x)
     for ld in leaders:
         rect = patches.Rectangle(
-            (ld["x"] - car_params.length, ld["y"] - car_params.width / 2),
-            car_params.length, car_params.width,
+            (ld["y"] - car_params.width / 2, ld["x"] - car_params.length),
+            car_params.width, car_params.length,
             linewidth=2, edgecolor="white", facecolor="white", alpha=0.8,
         )
         ax.add_patch(rect)
         ax.text(
-            ld["x"] - car_params.length / 2,
             ld["y"],
+            ld["x"] - car_params.length / 2,
             ld["label"],
             ha="center", va="center", fontsize=8, fontweight="bold",
         )
 
-    ax.set_xlabel("x [m]")
-    ax.set_ylabel("y [m]")
+    ax.set_xlabel("y [m]")
+    ax.set_ylabel("x [m]")
     ax.set_title(title)
     ax.set_aspect("equal")
     return im
