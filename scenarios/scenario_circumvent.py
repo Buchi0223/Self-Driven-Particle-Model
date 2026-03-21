@@ -4,9 +4,9 @@ Step 12: シナリオ — 2台を迂回 (Fig. 5b 再現)
 横方向に近接した2台のリーダーを迂回して追い越す。
 
 設定 (Fig. 5b に基づく、論文グラフから読取):
-    Follower F:  Car, v0=18, v_init=15, (x=0, y=5)    — L1 とインライン
-    Leader  L1:  Car, v0=9,  v_init=9,  (x=90, y=5)   — 中央
-    Leader  L2:  Car, v0=6,  v_init=6,  (x=100, y=6)  — L1 と近接、間を通れない
+    Follower F:  Car, v0=18, v_init=15, (x=0, y=5)    — L1 の左側
+    Leader  L1:  Car, v0=9,  v_init=9,  (x=90, y=6)   — 右寄り
+    Leader  L2:  Car, v0=6,  v_init=6,  (x=100, y=7)  — L1 と近接、間を通れない
     Road: 幅12m
     t_max: 35s
 
@@ -49,10 +49,11 @@ def main():
         v0=6.0, T=0.8, s0=2.0, a=1.0, b=1.0,
     )
 
-    # F は L1 とインライン、L1-L2 が近接 → 間を通れない → 左側から迂回
+    # 論文 Fig.5(b): F は 90m 後方、L2 は L1 の 10m 前方
+    # L1,L2 を右寄りに配置 → F は左側から迂回
     follower = Vehicle.from_cf_params(CAR, x=0.0, y=5.0, v=15.0, vehicle_id=0)
-    leader1 = Vehicle.from_cf_params(slow_car_1, x=90.0, y=5.0, v=9.0, vehicle_id=1)
-    leader2 = Vehicle.from_cf_params(slow_car_2, x=100.0, y=6.0, v=6.0, vehicle_id=2)
+    leader1 = Vehicle.from_cf_params(slow_car_1, x=90.0, y=6.0, v=9.0, vehicle_id=1)
+    leader2 = Vehicle.from_cf_params(slow_car_2, x=100.0, y=7.0, v=6.0, vehicle_id=2)
 
     result = run_simulation(
         [follower, leader1, leader2], road, mtm,
@@ -91,28 +92,33 @@ def main():
     axes[1].set_xlim(0, 35)
     axes[1].legend(loc="upper right")
 
-    # (3) スナップショット (3タイミング、論文 Fig.5 準拠)
+    # (3) スナップショット (論文 Fig.5 準拠: 横軸=Time, 各時刻で車両の相対配置を表示)
     ax_snap = axes[2]
-    snap_times = [5, 20, 33]
+    snap_times = [5, 15, 25]
 
     for idx, st in enumerate(snap_times):
         ti = min(range(len(traj_f["time"])),
                  key=lambda i: abs(traj_f["time"][i] - st))
-        rect_w = 1.2
-        x_center = st
-        for offset, traj, ec, label_prefix in [
-            (-1, traj_l1, "red", "L1"),
-            (0, traj_l2, "blue", "L2"),
-            (1, traj_f, "black", "F"),
+
+        # L1 基準の相対縦位置をスケーリングして時間軸上にオフセット
+        x_ref = tl1_x = traj_l1["x"][ti]
+        scale_x = 0.08  # 縦方向距離 → 時間軸方向のスケール
+
+        for traj, ec, label_prefix, length in [
+            (traj_l1, "red", "L1", CAR.length),
+            (traj_l2, "blue", "L2", CAR.length),
+            (traj_f, "black", "F", CAR.length),
         ]:
+            dx = (traj["x"][ti] - x_ref) * scale_x
+            rect_w = length * scale_x * 2
             rect = patches.Rectangle(
-                (x_center + offset * 1.4 - rect_w / 2,
+                (st + dx - rect_w / 2,
                  traj["y"][ti] - CAR.width / 2),
                 rect_w, CAR.width,
                 linewidth=1.5, edgecolor=ec, facecolor="none",
             )
             ax_snap.add_patch(rect)
-            ax_snap.text(x_center + offset * 1.4, traj["y"][ti] + 1.2,
+            ax_snap.text(st + dx, traj["y"][ti] + 1.2,
                          label_prefix, ha="center", va="bottom", fontsize=7,
                          fontweight="bold", color=ec)
 
