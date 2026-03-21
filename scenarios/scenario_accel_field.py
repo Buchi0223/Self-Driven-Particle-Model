@@ -88,45 +88,71 @@ def compute_field(
     return F, G
 
 
-def plot_accel_field(ax, x_grid, y_grid, F, G, leaders, car_params, title):
+def plot_accel_field(ax, x_grid, y_grid, F, G, leaders, car_params,
+                     panel_label, v_follower):
     """加速度場をプロット (論文 Fig.3 準拠: 横軸 y[m], 縦軸 x[m])"""
-    # 縦方向加速度のカラーマップ
-    vmax = max(abs(F.min()), abs(F.max()))
-    vmax = min(vmax, 9.0)
-    # 横軸=y, 縦軸=x にするため y_grid, x_grid の順
+    # 縦方向加速度のカラーマップ (論文: jet 系, 範囲 -9~0)
+    # jet_r: 0=赤, -9=青 (論文準拠)
     im = ax.pcolormesh(
         y_grid, x_grid, F,
-        cmap="RdYlGn", vmin=-vmax, vmax=vmax, shading="auto",
+        cmap="jet_r", vmin=-9, vmax=0, shading="auto",
     )
 
-    # ベクトル場 (間引き): (G, F) = (横方向, 縦方向) に対応
-    skip = 3
-    scale = 80
+    # ベクトル場 (密に表示, 論文準拠)
+    # 大きさをクリップして極端に長い矢印を抑制
+    mag = np.sqrt(F**2 + G**2)
+    max_mag = 3.0  # 矢印の最大長さに対応する加速度
+    scale_factor = np.where(mag > max_mag, max_mag / np.clip(mag, 1e-6, None), 1.0)
+    clipped_G = G * scale_factor
+    clipped_F = F * scale_factor
+    skip = 2
     ax.quiver(
         y_grid[::skip, ::skip], x_grid[::skip, ::skip],
-        G[::skip, ::skip], F[::skip, ::skip],
-        scale=scale, width=0.003, color="black", alpha=0.6,
+        clipped_G[::skip, ::skip], clipped_F[::skip, ::skip],
+        scale=40, width=0.003, headwidth=5, headlength=6,
+        color="black", alpha=0.7,
     )
 
-    # リーダーの矩形 (横軸=y, 縦軸=x)
+    # リーダーの矩形 (論文: 赤/茶系で塗りつぶし, 黒枠)
     for ld in leaders:
         rect = patches.Rectangle(
             (ld["y"] - car_params.width / 2, ld["x"] - car_params.length),
             car_params.width, car_params.length,
-            linewidth=2, edgecolor="white", facecolor="white", alpha=0.8,
+            linewidth=1.5, edgecolor="black", facecolor="darkred", alpha=0.7,
         )
         ax.add_patch(rect)
+        # ラベルを矩形の外側に配置 (左のリーダーは左上、右は右上)
+        x_offset = -1.2 if ld["y"] < 0 else 1.2
         ax.text(
-            ld["y"],
-            ld["x"] - car_params.length / 2,
+            ld["y"] + x_offset,
+            ld["x"] + 1.0,
             ld["label"],
-            ha="center", va="center", fontsize=8, fontweight="bold",
+            ha="center", va="bottom", fontsize=8, fontweight="bold",
+            color="white",
         )
 
-    ax.set_xlabel("y [m]")
-    ax.set_ylabel("x [m]")
-    ax.set_title(title)
-    ax.set_aspect("equal")
+    # 速度情報テキストボックス (論文準拠)
+    vl1 = next(ld["v"] for ld in leaders if ld["label"] == "Leader 1")
+    vl2 = next(ld["v"] for ld in leaders if ld["label"] == "Leader 2")
+    info_text = (f"v={v_follower:.1f} m/s, "
+                 f"v$_{{lead1}}$={vl1:.1f} m/s, "
+                 f"v$_{{lead2}}$={vl2:.1f} m/s")
+    ax.text(0.5, 0.03, info_text, transform=ax.transAxes,
+            ha="center", va="bottom", fontsize=9,
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
+                      edgecolor="black", alpha=0.8))
+
+    # パネルラベル (左上)
+    ax.text(0.05, 0.97, panel_label, transform=ax.transAxes,
+            ha="left", va="top", fontsize=14, fontweight="bold")
+
+    ax.set_xlabel("y[m]", fontsize=11)
+    ax.set_ylabel("x[m]", fontsize=11)
+    ax.set_xlim(-6, 6)
+    ax.set_xticks(range(-6, 8, 2))
+    ax.set_ylim(-50, 5)
+    # aspect を数値で指定: 縦55m / 横12m のデータを、縦長すぎないように横を伸ばす
+    ax.set_aspect(0.5)
     return im
 
 
@@ -136,39 +162,42 @@ def main():
     v_follower = 10.0
     v0_follower = 18.0
 
-    # グリッド (論文 Fig.3: x=-50~0, y=-6~6)
-    x_arr = np.linspace(-50, 5, 80)
-    y_arr = np.linspace(-6, 6, 60)
+    # グリッド (論文 Fig.3: x=-50~0, y=-6~6, 高解像度)
+    x_arr = np.linspace(-50, 5, 120)
+    y_arr = np.linspace(-6, 6, 80)
     x_grid, y_grid = np.meshgrid(x_arr, y_arr)
 
     # --- (a) リーダー間通過可能 ---
     leaders_a = [
-        {"x": 0.0, "y": -3.0, "v": 9.0, "label": "L1"},
-        {"x": 0.0, "y": 3.0, "v": 6.0, "label": "L2"},
+        {"x": 0.0, "y": -3.0, "v": 9.0, "label": "Leader 1"},
+        {"x": 0.0, "y": 3.0, "v": 6.0, "label": "Leader 2"},
     ]
 
     # --- (b) リーダー間通過不可 → 迂回 ---
     leaders_b = [
-        {"x": 0.0, "y": -1.0, "v": 9.0, "label": "L1"},
-        {"x": 0.0, "y": 1.0, "v": 6.0, "label": "L2"},
+        {"x": 0.0, "y": -1.0, "v": 9.0, "label": "Leader 1"},
+        {"x": 0.0, "y": 1.0, "v": 6.0, "label": "Leader 2"},
     ]
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+    fig, axes = plt.subplots(1, 2, figsize=(16, 10))
+    fig.suptitle("accLong [m/s$^2$]", fontsize=13, y=0.92)
 
-    for ax, leaders, label in [
-        (axes[0], leaders_a, "(a) Passing between leaders"),
-        (axes[1], leaders_b, "(b) Circumventing leaders"),
+    for ax, leaders, panel_label in [
+        (axes[0], leaders_a, "(a)"),
+        (axes[1], leaders_b, "(b)"),
     ]:
         F, G = compute_field(
             x_grid, y_grid, leaders, v_follower, v0_follower, car, mtm,
         )
-        im = plot_accel_field(ax, x_grid, y_grid, F, G, leaders, car, label)
+        im = plot_accel_field(
+            ax, x_grid, y_grid, F, G, leaders, car,
+            panel_label, v_follower,
+        )
+        # 個別カラーバー (論文: 各パネル右側)
+        cb = fig.colorbar(im, ax=ax, shrink=0.6, pad=0.02)
+        cb.set_label("accLong [m/s$^2$]", fontsize=10)
 
-    fig.colorbar(im, ax=axes, label="Longitudinal acceleration [m/s²]", shrink=0.8)
-    fig.suptitle(
-        f"MTM Acceleration Vector Field (v={v_follower}, v0={v0_follower})",
-        fontsize=14,
-    )
+    plt.subplots_adjust(wspace=0.05)
     plt.savefig("output/step9_accel_field.png", dpi=150, bbox_inches="tight")
     plt.close()
     print("Saved: output/step9_accel_field.png")
