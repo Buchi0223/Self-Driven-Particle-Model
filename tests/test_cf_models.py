@@ -96,6 +96,13 @@ class TestIDMAcceleration:
                                    v0=V0, T=T, s0=S0, a=A, b=B, delta=DELTA)
         assert acc_neg == -B_MAX
 
+    def test_small_positive_gap_clamped(self):
+        """小さな正の gap → -b_max にクランプされる"""
+        acc = idm_acceleration(s=0.8, v=9.0, vl=6.0,
+                               v0=9.0, T=0.8, s0=2.0, a=1.0, b=1.0,
+                               delta=4.0, b_max=9.0)
+        assert acc == -9.0  # クランプなしでは -805
+
     def test_equilibrium_gap(self):
         """定常状態: v = vl かつ acc ≈ 0 となる gap を検証"""
         v = 10.0

@@ -90,7 +90,9 @@ def idm_acceleration(s: float, v: float, vl: float,
     free_term = (v / v0) ** delta if v0 > 0.0 else 0.0
     interaction_term = (s_star / s) ** 2
 
-    return a * (1.0 - free_term - interaction_term)
+    # クランプ: 正の gap でも -b_max を下回らない
+    # (gap→0+ で (s*/s)^2 が発散するため)
+    return max(a * (1.0 - free_term - interaction_term), -b_max)
 
 
 # ---------------------------------------------------------------------------
