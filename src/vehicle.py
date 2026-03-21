@@ -67,6 +67,7 @@ class Vehicle:
     b: float = 1.0
     b_max: float = 9.0
     delta: float = 4.0
+    coolness: float = 0.99
 
     # --- メタ情報 ---
     vehicle_type: str = "Car"
@@ -107,6 +108,7 @@ class Vehicle:
             b=cf_params.b,
             b_max=cf_params.b_max,
             delta=cf_params.delta,
+            coolness=cf_params.coolness,
             vehicle_type=cf_params.vehicle_type,
             vehicle_id=vehicle_id,
         )

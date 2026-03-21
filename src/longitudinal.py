@@ -65,6 +65,7 @@ def f_interaction_single(
     xl: float, yl: float, vl: float, Wl: float, Ll: float,
     v0: float, T: float, s0: float, a: float, b: float,
     delta: float, b_max: float, sy0: float,
+    coolness: float = 0.0,
 ) -> float:
     """単一リーダー l からの縦方向相互作用力 f_{il} — 式(7)
 
@@ -75,6 +76,7 @@ def f_interaction_single(
         xl, yl, vl, Wl, Ll: リーダー l の状態・車幅・車長
         v0 ~ b_max: CF パラメータ (対象車両)
         sy0: 横方向減衰スケール [m]
+        coolness: ACC coolness factor (0=IDM, >0=ACC)
 
     Returns:
         f_{il} [m/s^2]
@@ -84,7 +86,7 @@ def f_interaction_single(
     att = alpha(dy, w_bar, sy0)
 
     gap = sx_gap(xi, xl, Ll)
-    a_int = cf_interaction(gap, vi, vl, v0, T, s0, a, b, delta, b_max)
+    a_int = cf_interaction(gap, vi, vl, v0, T, s0, a, b, delta, b_max, coolness)
 
     return att * a_int
 
@@ -126,6 +128,7 @@ def find_most_interacting_leader(
             i.x, i.y, i.v, i.width,
             other.x, other.y, other.v, other.width, other.length,
             i.v0, i.T, i.s0, i.a, i.b, i.delta, i.b_max, sy0,
+            i.coolness,
         )
 
         if abs(f_il) > best_abs_f:

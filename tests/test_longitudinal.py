@@ -206,16 +206,18 @@ class TestLongitudinalAcceleration:
         assert acc == pytest.approx(expected_free, abs=0.01)
 
     def test_inline_following(self):
-        """インライン追従 → CF モデルの加速度に近い"""
+        """インライン追従 → CF モデル (ACC) の加速度に近い"""
         follower = Vehicle.create("Car", x=0.0, y=6.0, v=15.0, vehicle_id=0)
         leader = Vehicle.create("Car", x=20.0, y=6.0, v=10.0, vehicle_id=1)
         road = Road()
         acc = longitudinal_acceleration(
             follower, [leader], road, DEFAULT_MTM_PARAMS
         )
-        # インラインなので α=1, 純粋な IDM
+        # インラインなので α=1, ACC (coolness=0.99)
         gap = 20.0 - 0.0 - CAR.length
-        expected = idm_acceleration(
+        from src.cf_models import acc_acceleration
+        expected = acc_acceleration(
             gap, 15.0, 10.0, CAR.v0, CAR.T, CAR.s0, CAR.a, CAR.b,
+            coolness=CAR.coolness,
         )
         assert acc == pytest.approx(expected, abs=0.1)

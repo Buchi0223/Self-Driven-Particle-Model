@@ -77,6 +77,7 @@ def compute_field(
                     gap, vi, ld["v"], v0_follower,
                     car_params.T, car_params.s0,
                     car_params.a, car_params.b, car_params.delta, car_params.b_max,
+                    car_params.coolness,
                 )
                 sign_dy = 1.0 if dy > 0.0 else (-1.0 if dy < 0.0 else 0.0)
                 dw_factor = 1.0 - mtm_params.lam_dw * (0.0 - wi) * sign_dy

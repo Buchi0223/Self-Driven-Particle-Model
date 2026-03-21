@@ -83,7 +83,7 @@ def w0_ij_from_leader(
     xi: float, yi: float, vi: float, wi: float, Wi: float,
     xj: float, yj: float, vj: float, wj: float, Wj: float, Lj: float,
     v0: float, T: float, s0: float, a: float, b: float,
-    delta: float, b_max: float,
+    delta: float, b_max: float, coolness: float,
     sy0_tilde: float, lam: float, lam_dw: float,
 ) -> float:
     """リーダー j から車両 i への横方向 desired speed 寄与 w^0_{ij} — 式(15)
@@ -109,7 +109,7 @@ def w0_ij_from_leader(
         return 0.0
 
     gap = sx_gap(xi, xj, Lj)
-    a_cf_int = cf_interaction(gap, vi, vj, v0, T, s0, a, b, delta, b_max)
+    a_cf_int = cf_interaction(gap, vi, vj, v0, T, s0, a, b, delta, b_max, coolness)
 
     sign_dy = 1.0 if dy > 0.0 else (-1.0 if dy < 0.0 else 0.0)
     dw_factor = 1.0 - lam_dw * (wj - wi) * sign_dy
@@ -121,7 +121,7 @@ def w0_ij_from_follower(
     xi: float, yi: float, vi: float, wi: float, Wi: float, Li: float,
     xj: float, yj: float, vj: float, wj: float, Wj: float,
     v0_j: float, T_j: float, s0_j: float, a_j: float, b_j: float,
-    delta_j: float, b_max_j: float,
+    delta_j: float, b_max_j: float, coolness_j: float,
     sy0_tilde: float, lam: float, lam_dw: float, p: float,
 ) -> float:
     """フォロワー j から車両 i への横方向 desired speed 寄与 — actio=reactio
@@ -149,7 +149,7 @@ def w0_ij_from_follower(
         xi=xj, yi=yj, vi=vj, wi=wj, Wi=Wj,
         xj=xi, yj=yi, vj=vi, wj=wi, Wj=Wi, Lj=Li,
         v0=v0_j, T=T_j, s0=s0_j, a=a_j, b=b_j,
-        delta=delta_j, b_max=b_max_j,
+        delta=delta_j, b_max=b_max_j, coolness=coolness_j,
         sy0_tilde=sy0_tilde, lam=lam, lam_dw=lam_dw,
     )
 
@@ -193,26 +193,28 @@ def w0_desired(
             # j はリーダー: |a_CF_int_ij| > a_thr でフィルタ
             gap = sx_gap(i.x, j.x, j.length)
             a_int = cf_interaction(
-                gap, i.v, j.v, i.v0, i.T, i.s0, i.a, i.b, i.delta, i.b_max
+                gap, i.v, j.v, i.v0, i.T, i.s0, i.a, i.b, i.delta, i.b_max,
+                i.coolness,
             )
             if abs(a_int) > mp.a_thr:
                 w0_total += w0_ij_from_leader(
                     i.x, i.y, i.v, i.w, i.width,
                     j.x, j.y, j.v, j.w, j.width, j.length,
-                    i.v0, i.T, i.s0, i.a, i.b, i.delta, i.b_max,
+                    i.v0, i.T, i.s0, i.a, i.b, i.delta, i.b_max, i.coolness,
                     mp.sy0_tilde, mp.lam, mp.lam_dw,
                 )
         else:
             # j はフォロワー: |a_CF_int_ji| > a_thr でフィルタ
             gap_ji = sx_gap(j.x, i.x, i.length)
             a_int_ji = cf_interaction(
-                gap_ji, j.v, i.v, j.v0, j.T, j.s0, j.a, j.b, j.delta, j.b_max
+                gap_ji, j.v, i.v, j.v0, j.T, j.s0, j.a, j.b, j.delta, j.b_max,
+                j.coolness,
             )
             if abs(a_int_ji) > mp.a_thr:
                 w0_total += w0_ij_from_follower(
                     i.x, i.y, i.v, i.w, i.width, i.length,
                     j.x, j.y, j.v, j.w, j.width,
-                    j.v0, j.T, j.s0, j.a, j.b, j.delta, j.b_max,
+                    j.v0, j.T, j.s0, j.a, j.b, j.delta, j.b_max, j.coolness,
                     mp.sy0_tilde, mp.lam, mp.lam_dw, mp.p,
                 )
 

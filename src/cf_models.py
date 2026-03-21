@@ -194,7 +194,8 @@ def cf_free(v: float, v0: float, a: float, delta: float = 4.0) -> float:
 def cf_interaction(s: float, v: float, vl: float,
                    v0: float, T: float, s0: float,
                    a: float, b: float, delta: float = 4.0,
-                   b_max: float = 9.0) -> float:
+                   b_max: float = 9.0,
+                   coolness: float = 0.0) -> float:
     """相互作用加速度 a_CF_int(s, v, vl) — 式(5)
 
     a_CF_int = a_CF(s, v, vl) - a_CF_free(v)
@@ -202,13 +203,20 @@ def cf_interaction(s: float, v: float, vl: float,
     リーダーとの相互作用による加速度成分。
     gap が大きいとき → 0 に収束 (式(5) 下の記述)。
 
+    coolness > 0 の場合、基盤 CF モデルとして ACC を使用する。
+    coolness = 0 の場合は IDM を使用する (後方互換)。
+
     Args:
         s:  net gap (バンパー間距離) [m]
-        v ~ b_max: IDM パラメータ
+        v ~ b_max: CF モデルパラメータ
+        coolness: ACC coolness factor (0=IDM, >0=ACC)
 
     Returns:
         相互作用加速度 [m/s^2]  (通常は負: 減速方向)
     """
-    a_total = idm_acceleration(s, v, vl, v0, T, s0, a, b, delta, b_max)
+    if coolness > 0.0:
+        a_total = acc_acceleration(s, v, vl, v0, T, s0, a, b, delta, b_max, coolness)
+    else:
+        a_total = idm_acceleration(s, v, vl, v0, T, s0, a, b, delta, b_max)
     a_free = cf_free(v, v0, a, delta)
     return a_total - a_free

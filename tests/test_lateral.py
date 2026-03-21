@@ -94,7 +94,7 @@ class TestW0FromLeader:
             xi=0, yi=5.0, vi=15.0, wi=0.0, Wi=1.7,
             xj=20.0, yj=5.0, vj=10.0, wj=0.0, Wj=1.7, Lj=4.2,
             v0=18.0, T=0.8, s0=2.0, a=1.0, b=1.0,
-            delta=4.0, b_max=9.0,
+            delta=4.0, b_max=9.0, coolness=0.99,
             sy0_tilde=0.30, lam=0.4, lam_dw=0.7,
         )
         assert w0 == 0.0
@@ -105,7 +105,7 @@ class TestW0FromLeader:
             xi=0, yi=5.0, vi=10.0, wi=0.0, Wi=1.7,
             xj=10000.0, yj=7.0, vj=10.0, wj=0.0, Wj=1.7, Lj=4.2,
             v0=18.0, T=0.8, s0=2.0, a=1.0, b=1.0,
-            delta=4.0, b_max=9.0,
+            delta=4.0, b_max=9.0, coolness=0.99,
             sy0_tilde=0.30, lam=0.4, lam_dw=0.7,
         )
         assert w0 == pytest.approx(0.0, abs=1e-4)
@@ -119,7 +119,7 @@ class TestW0FromLeader:
             xi=0, yi=5.0, vi=15.0, wi=0.0, Wi=1.7,
             xj=15.0, yj=7.0, vj=5.0, wj=0.0, Wj=1.7, Lj=4.2,
             v0=18.0, T=0.8, s0=2.0, a=1.0, b=1.0,
-            delta=4.0, b_max=9.0,
+            delta=4.0, b_max=9.0, coolness=0.99,
             sy0_tilde=0.30, lam=0.4, lam_dw=0.7,
         )
         assert w0 < 0.0
@@ -133,7 +133,7 @@ class TestW0FromLeader:
             xi=0, yi=5.0, vi=15.0, wi=0.0, Wi=1.7,
             xj=15.0, yj=3.0, vj=5.0, wj=0.0, Wj=1.7, Lj=4.2,
             v0=18.0, T=0.8, s0=2.0, a=1.0, b=1.0,
-            delta=4.0, b_max=9.0,
+            delta=4.0, b_max=9.0, coolness=0.99,
             sy0_tilde=0.30, lam=0.4, lam_dw=0.7,
         )
         assert w0 > 0.0
@@ -151,7 +151,7 @@ class TestW0FromFollower:
             xi=50.0, yi=5.0, vi=10.0, wi=0.0, Wi=1.7, Li=4.2,
             xj=30.0, yj=6.0, vj=15.0, wj=0.0, Wj=1.7,
             v0_j=18.0, T_j=0.8, s0_j=2.0, a_j=1.0, b_j=1.0,
-            delta_j=4.0, b_max_j=9.0,
+            delta_j=4.0, b_max_j=9.0, coolness_j=0.99,
             sy0_tilde=0.30, lam=0.4, lam_dw=0.7, p=0.0,
         )
         assert w0 == 0.0
@@ -162,7 +162,7 @@ class TestW0FromFollower:
             xi=50.0, yi=5.0, vi=10.0, wi=0.0, Wi=1.7, Li=4.2,
             xj=30.0, yj=6.0, vj=15.0, wj=0.0, Wj=1.7,
             v0_j=18.0, T_j=0.8, s0_j=2.0, a_j=1.0, b_j=1.0,
-            delta_j=4.0, b_max_j=9.0,
+            delta_j=4.0, b_max_j=9.0, coolness_j=0.99,
             sy0_tilde=0.30, lam=0.4, lam_dw=0.7, p=0.2,
         )
         assert w0 != 0.0
