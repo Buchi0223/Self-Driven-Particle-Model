@@ -3,10 +3,10 @@ Step 12: シナリオ — 2台を迂回 (Fig. 5b 再現)
 
 横方向に近接した2台のリーダーを迂回して追い越す。
 
-設定 (Fig. 5b に基づく):
-    Follower F:  Car, v0=18, v_init=15, (x=0, y=3)    — 左寄りスタート
-    Leader  L1:  Car, v0=9,  v_init=9,  (x=50, y=5.5) — 中央やや左
-    Leader  L2:  Car, v0=6,  v_init=6,  (x=55, y=7.5) — 中央やや右、間を通れない
+設定 (Fig. 5b に基づく、論文グラフから読取):
+    Follower F:  Car, v0=18, v_init=15, (x=0, y=5)    — L1 とインライン
+    Leader  L1:  Car, v0=9,  v_init=9,  (x=90, y=5)   — 中央
+    Leader  L2:  Car, v0=6,  v_init=6,  (x=100, y=6)  — L1 と近接、間を通れない
     Road: 幅12m
     t_max: 35s
 
@@ -49,10 +49,10 @@ def main():
         v0=6.0, T=0.8, s0=2.0, a=1.0, b=1.0,
     )
 
-    # L1 と L2 が近接 (sy ≈ 0.3m) → 間を通れない → 左側から迂回
-    follower = Vehicle.from_cf_params(CAR, x=0.0, y=3.0, v=15.0, vehicle_id=0)
-    leader1 = Vehicle.from_cf_params(slow_car_1, x=50.0, y=5.5, v=9.0, vehicle_id=1)
-    leader2 = Vehicle.from_cf_params(slow_car_2, x=55.0, y=7.5, v=6.0, vehicle_id=2)
+    # F は L1 とインライン、L1-L2 が近接 → 間を通れない → 左側から迂回
+    follower = Vehicle.from_cf_params(CAR, x=0.0, y=5.0, v=15.0, vehicle_id=0)
+    leader1 = Vehicle.from_cf_params(slow_car_1, x=90.0, y=5.0, v=9.0, vehicle_id=1)
+    leader2 = Vehicle.from_cf_params(slow_car_2, x=100.0, y=6.0, v=6.0, vehicle_id=2)
 
     result = run_simulation(
         [follower, leader1, leader2], road, mtm,

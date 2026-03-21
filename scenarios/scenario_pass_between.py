@@ -3,10 +3,10 @@ Step 11: シナリオ — 2台の間を通過 (Fig. 5a 再現)
 
 横方向に十分離れた2台のリーダーの間を通過する。
 
-設定 (Fig. 5a に基づく):
-    Follower F:  Car, v0=18, v_init=15, (x=0, y=5)
-    Leader  L1:  Car, v0=9,  v_init=9,  (x=50, y=3)   — 左寄り
-    Leader  L2:  Car, v0=6,  v_init=6,  (x=60, y=9)   — 右寄り
+設定 (Fig. 5a に基づく、論文グラフから読取):
+    Follower F:  Car, v0=18, v_init=15, (x=0, y=5)    — L1-L2 の中間
+    Leader  L1:  Car, v0=9,  v_init=9,  (x=90, y=4)   — 左寄り
+    Leader  L2:  Car, v0=6,  v_init=6,  (x=100, y=7)  — 右寄り
     Road: 幅12m
     t_max: 35s
 
@@ -50,8 +50,8 @@ def main():
     )
 
     follower = Vehicle.from_cf_params(CAR, x=0.0, y=5.0, v=15.0, vehicle_id=0)
-    leader1 = Vehicle.from_cf_params(slow_car_1, x=50.0, y=3.0, v=9.0, vehicle_id=1)
-    leader2 = Vehicle.from_cf_params(slow_car_2, x=60.0, y=9.0, v=6.0, vehicle_id=2)
+    leader1 = Vehicle.from_cf_params(slow_car_1, x=90.0, y=4.0, v=9.0, vehicle_id=1)
+    leader2 = Vehicle.from_cf_params(slow_car_2, x=100.0, y=7.0, v=6.0, vehicle_id=2)
 
     result = run_simulation(
         [follower, leader1, leader2], road, mtm,
